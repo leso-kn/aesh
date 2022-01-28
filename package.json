@@ -1,0 +1,13 @@
+{
+  "name": "ipfs-secure-qr-share",
+  "version": "0.1.0",
+  "description": "Encrypt and share files via IPFS using QR codes.",
+  "main": "share.js",
+  "author": "Lesosoftware",
+  "license": "MIT",
+  "dependencies": {
+    "base64-stream": "^1.0.0",
+    "identify-stream": "^1.0.3",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
