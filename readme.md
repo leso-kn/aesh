@@ -5,7 +5,7 @@ Encrypt and share files through IPFS via QR codes or NFC tags.
 ## Requirements
 
 * Nodejs
-* IPFS (having the `ipfs`-command present in your `PATH`)
+* IPFS (the `ipfs`-command installed in your `PATH`)
 
 ## Usage
 

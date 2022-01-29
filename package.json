@@ -6,6 +6,10 @@
   "bin": {
     "ipfs-seqr": "./aesh.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leso-kn/aesh"
+  },
   "author": "Lesosoftware",
   "license": "MIT",
   "dependencies": {
