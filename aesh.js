@@ -4,15 +4,13 @@
 
 let crypto = require('crypto');
 const { createReadStream, createWriteStream, unlinkSync, readFileSync } = require('fs');
-const { basename, join } = require('path');
+const { basename, join, resolve, dirname } = require('path');
 const { Base64Encode } = require('base64-stream');
 const { execSync } = require('child_process');
 const minify = require('@minify-html/js');
 const qrcode = require('qrcode-terminal');
 
 //
-
-console.log('encryping contents..');
 
 // Any other mime-type will be offered for downloading
 const previewTypes = [
@@ -32,8 +30,18 @@ const fileExts = [
 
 //
 
-async function command_add(filename)
+function print_usage()
 {
+    console.log(`Usage: aesh add <file.(txt|pdf|mp3|...)>`);
+}
+
+async function command_add()
+{
+    let filename = process.argv[3];
+    if (!filename) { print_usage(); return; }
+
+    console.log('encryping contents..');
+
     let file = createReadStream(filename);
     let identify = new (require('identify-stream'));
 
@@ -42,16 +50,18 @@ async function command_add(filename)
 
     let mime = streamType
             ? streamType.mime
-            : (fileExts.filter(ext => mime.match(ext[0]))[0] || [0,'text/plain'])[1];
+            : (fileExts.filter(ext => filename.match(ext[0]))[0] || [0,'text/plain'])[1];
 
     let usePreview = previewTypes.filter(pt => mime.match(pt)).length > 0; // used in template.htm
     //
 
     let output = createWriteStream('.enc.htm');
-    let template = readFileSync(join(__dirname, 'template.htm')).split('{{contents}}');
+    let template = readFileSync(join(__dirname, 'template.htm')).toString().split('{{content}}');
+
+    let minifyCfg = minify.createConfiguration({ minify_css: true, do_not_minify_doctype: true });
 
     //
-    output.write(minify.minify(eval(`\`${template[0]}\``)));
+    output.write(minify.minify(eval(`\`${template[0]}\``), minifyCfg));
 
     let key = crypto.randomBytes(32);
     let iv = crypto.randomBytes(16);
@@ -67,12 +77,13 @@ async function command_add(filename)
     iv = iv.toString('base64');
 
     //
-    await new Promise(r => output.write(minify.minify(eval(`\`${template[1]}\``)), r));
+    await new Promise(r => output.write(minify.minify(eval(`\`${template[1]}\``), minifyCfg).toString()
+                                              .replace(/\<script\>$/, '</script>'), r)); // Fix minification issue
     await new Promise(r => output.close(r));
 
     // Upload constructed html file to IPFS
     console.log('uploading file..');
-    let ret = execSync('ipfs add .enc.htm').toString();
+    let ret = execSync('ipfs add --pin=false .enc.htm').toString();
 
     if (ret.startsWith('added '))
     {
@@ -86,10 +97,23 @@ async function command_add(filename)
             console.log('Share available at: ' + shareLink + '\n');
         });
 
-        execSync('ipfs pin add ' + hash);
+        execSync(`ipfs files mkdir -p "${dirname(resolve(filename))}" &&
+                  ipfs files cp /ipfs/${hash} "${resolve(filename)}"`.split('\n').join(' '));
         unlinkSync('.enc.htm');
     }
     else { /* Error */ console.log(ret); }
 };
 
-command_add(process.argv[2]);
+// Main
+
+let cmd = process.argv[2];
+
+switch (cmd)
+{
+    case 'add':
+    {
+        command_add();
+        break;
+    }
+    default: print_usage();
+}

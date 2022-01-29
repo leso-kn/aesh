@@ -10,14 +10,14 @@ Encrypt and share files through IPFS via QR codes or NFC tags.
 ## Usage
 
 ```bash
-> aesh <file.(txt|pdf|mp3|...)>
+> aesh add <file.(txt|pdf|mp3|...)>
 ```
 
 The above command will do four things:
 
 1. Encrypt a given (local) file using the `aes-256-cbc` algorithm
 2. Add (upload) the encrypted file to your local IPFS
-3. [Pin](https://docs.ipfs.io/how-to/pin-files/) the file
+3. Register the file in your local [MFS](https://docs.ipfs.io/concepts/file-systems/#mutable-file-system-mfs) (IPFS) using the same path as on your local filesystem
 4. Return a QR code and the plain URL pointing to the file inside IPFS.
 
    Anyone with the presented link (URL or QR code) can decrypt and view  
@@ -28,7 +28,7 @@ The above command will do four things:
 ## Example
 
 ```bash
-> aesh hello-world.txt 
+> aesh add hello-world.txt 
 
 encryping contents..
 uploading file..
