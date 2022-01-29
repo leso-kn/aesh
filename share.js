@@ -1,5 +1,6 @@
 let crypto = require('crypto');
 const { createReadStream, createWriteStream, unlinkSync } = require('fs');
+const { basename } = require('path');
 const { Base64Encode } = require('base64-stream');
 const { execSync } = require('child_process');
 const qrcode = require('qrcode-terminal');
@@ -8,15 +9,38 @@ const qrcode = require('qrcode-terminal');
 
 console.log('encryping contents..');
 
-let file = createReadStream(process.argv[2]);
+// Any other mime-type will be offered for downloading
+const previewTypes = [
+  /^image\//,
+  /^video\//,
+  /^audio\//,
+  /^text\//,
+  /^application\/pdf/
+];
+
+// Mapping between known file extensions and mime-types.
+// Used when mime-type cannot be determined using identify-stream
+const fileExts = [
+  [/\.iso$/, 'application/x-cd-image'],
+  [/\.html?$/, 'text/html']
+];
+
+//
+
+let inputFilename = process.argv[2];
+
+let file = createReadStream(inputFilename);
 let identify = new (require('identify-stream'));
 
 file.pipe(identify);
 
 identify.on('complete', (streamType) =>
 {
-  let mime = streamType ? streamType.mime : 'text/plain';
+  let mime = streamType
+           ? streamType.mime
+           : (fileExts.filter(ext => mime.match(ext[0]))[0] || [0,'text/plain'])[1];
 
+  let usePreview = previewTypes.filter(pt => mime.match(pt)).length > 0;
   let output = createWriteStream('.enc.htm');
 
   output.write(`<!DOCTYPE html>
@@ -62,8 +86,13 @@ window.onload = async function()
       await crypto.subtle.decrypt(
       { name: 'AES-CBC', iv: Uint8Array.from(atob(iv), c => c.charCodeAt(0)) }, key, Uint8Array.from(atob(enc), c => c.charCodeAt(0)))], { type: mimetype }));
 
-    setTimeout(() => { s.setAttribute('ready', ''); s.innerHTML = 'ready.</br></br>If your browser does not display the document automatically, you can try to launch the download manually using <a href="' + blobURL + '">this link</a>.'; }, 1000);
-    document.location = blobURL;
+    setTimeout(() => { s.setAttribute('ready', ''); s.innerHTML = 'ready.</br></br>If your browser does not display the document automatically, you can try to launch the download manually using <a href="' + blobURL + '"${usePreview ? '' : ' download="' + basename(inputFilename).split('"').join('') + '"'}>this link</a>.'; }, 1000);
+    ${usePreview
+      ? 'document.location = blobURL;'
+      : `let a = document.createElement('a');
+    a.href = blobURL;
+    a.download = decodeURIComponent('${encodeURIComponent(basename(inputFilename))}');
+    a.click();`}
   }
   catch (err)
   { s.innerText = 'Error: ' + err.toString(); s.setAttribute('error', ''); content.parentNode.removeChild(content); }
