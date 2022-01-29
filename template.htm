@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+Status: <span id=s>downloading file..</span>
+
+<style>
+#s:not([ready]):after
+{
+    content: "";
+    display: inline-block;
+    margin-left: .3em;
+
+    width: .7em;
+    height: .7em;
+
+    border: .15em solid #68999f;
+    
+    animation: 2s spin linear infinite;
+}
+
+#s[error]:after
+{
+    animation: none;
+    border-color: #a24 !important;
+}
+
+@keyframes spin
+{
+    0% { transform: rotate(0) }
+    100% { transform: rotate(360deg) }
+}
+</style>
+
+<script>
+    var _key = document.location.hash.substring(1);
+    document.location.hash = '';
+</script>
+
+<script id="content">
+
+    let mimetype = '${mime}';
+    let enc = '{{content}}';
+    let iv = '${iv}';
+
+    //
+
+    window.onload = async function()
+    {
+        try
+        {
+            let key = _key;
+            _key = null;
+
+            s.innerText = 'decrypting contents..';
+
+            key = await crypto.subtle.importKey('raw', Uint8Array.from(atob(key), c => c.charCodeAt(0)), { name: 'AES-CBC' }, false, ['decrypt']);
+
+            let blobURL = window.URL.createObjectURL(new Blob([
+            await crypto.subtle.decrypt(
+            { name: 'AES-CBC', iv: Uint8Array.from(atob(iv), c => c.charCodeAt(0)) }, key, Uint8Array.from(atob(enc), c => c.charCodeAt(0)))], { type: mimetype }));
+
+            setTimeout(() =>
+            {
+                s.setAttribute('ready', '');
+                s.innerHTML = 'ready.</br></br>If your browser does not display the document automatically, you can try to launch the download manually using <a href="'
+                            + blobURL + '"${usePreview ? "" : " download=\"" + basename(inputFilename).split("\"").join("") + "\""}>this link</a>.';
+            }, 1000);
+
+            ${usePreview
+              ? 'document.location = blobURL;'
+              : `
+            let a = document.createElement('a');
+            a.href = blobURL;
+            a.download = decodeURIComponent('${encodeURIComponent(basename(inputFilename))}');
+            a.click();`}
+        }
+        catch (err)
+        { s.innerText = 'Error: ' + err.toString(); s.setAttribute('error', ''); content.parentNode.removeChild(content); }
+    }
+
+</script>
