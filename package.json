@@ -1,8 +1,11 @@
 {
-  "name": "ipfs-secure-qr-share",
+  "name": "aesh",
   "version": "0.1.0",
-  "description": "Encrypt and share files via IPFS using QR codes.",
-  "main": "share.js",
+  "description": "Encrypt and share files through IPFS via QR codes or NFC tags.",
+  "main": "aesh.js",
+  "bin": {
+    "ipfs-seqr": "./aesh.js"
+  },
   "author": "Lesosoftware",
   "license": "MIT",
   "dependencies": {
