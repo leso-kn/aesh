@@ -9,6 +9,7 @@
   "author": "Lesosoftware",
   "license": "MIT",
   "dependencies": {
+    "@minify-html/js": "^0.8.0",
     "base64-stream": "^1.0.0",
     "identify-stream": "^1.0.3",
     "qrcode-terminal": "^0.12.0"

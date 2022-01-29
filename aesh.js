@@ -7,6 +7,7 @@ const { createReadStream, createWriteStream, unlinkSync, readFileSync } = requir
 const { basename, join } = require('path');
 const { Base64Encode } = require('base64-stream');
 const { execSync } = require('child_process');
+const minify = require('@minify-html/js');
 const qrcode = require('qrcode-terminal');
 
 //
@@ -50,7 +51,7 @@ identify.on('complete', (streamType) =>
     let output = createWriteStream('.enc.htm');
     let template = readFileSync(join(__dirname, 'template.htm')).split('{{contents}}');
 
-    output.write(eval(`\`${template[0]}\``));
+    output.write(minify.minify(eval(`\`${template[0]}\``)));
 
     let key = crypto.randomBytes(32);
     let iv = crypto.randomBytes(16);
@@ -61,7 +62,7 @@ identify.on('complete', (streamType) =>
     {
         iv = iv.toString('base64');
 
-        output.write(eval(`\`${template[1]}\``), (err) =>
+        output.write(minify.minify(eval(`\`${template[1]}\``)), (err) =>
         {
             // Done
             output.close(() =>
