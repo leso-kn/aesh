@@ -1,6 +1,6 @@
-# ipfs-secure-qr-share
+# aesh
 
-Encrypt and share files via IPFS using QR codes.
+Encrypt and share files through IPFS via QR codes or NFC tags.
 
 ## Requirements
 
@@ -9,16 +9,26 @@ Encrypt and share files via IPFS using QR codes.
 
 ## Usage
 
-The following command will encrypt a file, upload it into IPFS and return a QR code + URL representing the newly created object inside IPFS.
-
 ```bash
-> node share.js <file.(txt|pdf|mp3|...)>
+> aesh <file.(txt|pdf|mp3|...)>
 ```
+
+The above command will do four things:
+
+1. Encrypt a given (local) file using the `aes-256-cbc` algorithm
+2. Add (upload) the encrypted file to your local IPFS
+3. [Pin](https://docs.ipfs.io/how-to/pin-files/) the file
+4. Return a QR code and the plain URL pointing to the file inside IPFS.
+
+   Anyone with the presented link (URL or QR code) can decrypt and view  
+   or download the file through any modern web browser.
+
+> **Disclaimer**: Share the qr code / full link with people you trust only! The text behind the hash (#) in the end of the URL is the single and only thing needed to decrypt the uploaded file and should therefor be treated like a password.
 
 ## Example
 
 ```bash
-> node . hello-world.txt 
+> aesh hello-world.txt 
 
 encryping contents..
 uploading file..
@@ -51,21 +61,42 @@ Share available at: https://ipfs.io/ipfs/QmUzv6Nhtj7VcTsaA2h5kRy3uirq8sKYeDqD12u
 
 ## How does it work?
 
-Before uploading your file to IPFS, `share.js` encrypts it using the `aes-256-cbc` algorithm.
+When sharing a new file, aesh first reads its contents and encrypts them using the `aes-256-cbc` algorithm. The key used for encrypting the file is generated randomly and can later be used to decrypt it again.
 
-When presenting you with the QR code (and the plain link to the share), the The key for decrypting the file is appended as the fragment identifier (the # hash) of the URL. This information [never leaves the browser](https://www.rfc-editor.org/rfc/rfc2396#section-4).
+The share-link presented later (which is also the link stored inside the QR code) contains this key in the fragment identifier (the # hash) of the URL – this section [never leaves the browser](https://www.rfc-editor.org/rfc/rfc2396#section-4) during HTTP requests.
 
-What `share.js` actually uploads to IPFS is a small HTML page, that runs JavaScript inside. Utilitizing the [WebCrypto API](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/decrypt), the encrypted file contents baked into the HTML document are then decrypted using the user-provided, base64 encoded AES key from the fragment identifier of the URL.
+After encrypting your file, aesh embeds the encrypted contents in a small HTML file, that contains a few lines of JavaScript, which is what is actually being uploaded to IPFS.
 
-After decrypting the file successfully, the browser generates a [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) from the decrypted contents and redirects the browser to that URL (if supported, otherwise a link to the blob will be displayed to the user).
+Utilitizing the [WebCrypto API](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/decrypt), the HTML file takes the fragment identifiert (hash # section) from the URL used to access it to decrypt the baked-in contents of the original file.
 
-The program also uses the [identify-stream](https://www.npmjs.com/package/identify-stream) package to automatically determine the mime-type of the uploaded document - the browser uses this information when constructing the Blob object. You can check the list of mime-types supported by identify-stream [here](https://www.npmjs.com/package/identify-stream#user-content-supported-file-types). The fallback mime-type is `text/plain`.
+After successful decryption, a [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) is generated from the decrypted contents, which is then either offered for download, or previewed in the browser directly, depending on the mime-type and browser support – as a fallback, a "download link" to the blob will be presented to the user.
 
-## Inspiration
+By default, the program uses [identify-stream](https://www.npmjs.com/package/identify-stream) to automatically determine the mime-type of the file selected for sharing.
 
-Created to archive my bachelor thesis inside IPFS, which had to be done encrypted. The QR codes were attached to the physical copies of the thesis.
+## Supported Mime-Types
 
-More ideas: Why not store your share URL inside an NFC tag?
+Any mime-type [supported by identify-stream](https://www.npmjs.com/package/identify-stream#user-content-supported-file-types).
+
+Furthermore, the following types (based on file extension):
+
+| Extension | Mime-Type              | Presentation |
+| --------- | ---------------------- | ------------ |
+| .iso      | application/x-cd-image | Download     |
+| .htm[l]   | text/html              | Preview      |
+
+The fallback mime-type is `text/plain`.
+
+## ae-sh?
+
+It's "ash" [/ɛʃ/](https://itinerarium.github.io/phoneme-synthesis/?w=/ɛʃ/), but the reasonable separation would be aes-sh for AES-share.
+
+## Background
+
+Inspired by [dlnet](https://github.com/ovanwijk/dlnet).
+
+Created to host a digital version of my bachelor thesis – which had to be encrypted – on IPFS. The QR codes were attached to the physical copies.
+
+It was also planned to store the share-link inside NFC tags, but since the library where the thesis would eventually end up used RFID to identify print media, this was not implemented. Though the thought about an NFC tag, which grants access to a digital copy hosted on the decentralized web is still very fancy~.
 
 ---
 Lesosoftware 2022
