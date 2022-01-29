@@ -86,6 +86,20 @@ Furthermore, the following types (based on file extension):
 
 The fallback mime-type is `text/plain`.
 
+## Taking down local shares
+
+Shares technically cannot be "removed" once they have been [pinned](https://docs.ipfs.io/how-to/pin-files/) by other IPFS nodes. Nevertheless, this is very unlikely to happen in the early stages of a share, or when it's link or QR code has not been distributed yet.
+
+To conveniently remove the shared file from your local IPFS, use:
+
+```bash
+> aesh del <file.(txt|pdf|mp3|...)>
+```
+
+where the filename corresponds to the source file on your local disk.
+
+Like `add`, the `del`-command works with relative paths just like you were referring to the source file on your disk.
+
 ## ae-sh?
 
 It's "ash" [/ɛʃ/](https://itinerarium.github.io/phoneme-synthesis/?w=/ɛʃ/), but the reasonable separation would be aes-sh for AES-share.

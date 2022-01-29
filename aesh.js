@@ -32,7 +32,9 @@ const fileExts = [
 
 function print_usage()
 {
-    console.log(`Usage: aesh add <file.(txt|pdf|mp3|...)>`);
+    console.log(`
+Usage: aesh add <file.(txt|pdf|mp3|...)>
+            del <local file>`);
 }
 
 async function command_add()
@@ -104,6 +106,15 @@ async function command_add()
     else { /* Error */ console.log(ret); }
 };
 
+async function command_del()
+{
+    let filename = process.argv[3];
+    if (!filename) { print_usage(); return; }
+
+    execSync(`ipfs files rm -r "${resolve(filename)}"`);
+    console.log(`removed local share (${basename(filename)})`);
+}
+
 // Main
 
 let cmd = process.argv[2];
@@ -113,6 +124,11 @@ switch (cmd)
     case 'add':
     {
         command_add();
+        break;
+    }
+    case 'del':
+    {
+        command_del();
         break;
     }
     default: print_usage();
