@@ -52,7 +52,7 @@ async function command_add()
 
     let mime = streamType
             ? streamType.mime
-            : (fileExts.filter(ext => filename.match(ext[0]))[0] || [0,'text/plain'])[1];
+            : (fileExts.filter(ext => filename.match(ext[0]))[0] || [0,'text/plain;charset=utf-8'])[1];
 
     let usePreview = previewTypes.filter(pt => mime.match(pt)).length > 0; // used in template.htm
     //
