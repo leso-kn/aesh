@@ -4,6 +4,10 @@
 
 Encrypt and share files through IPFS via QR codes or NFC tags.
 
+```bash
+> npm i -g aesh
+```
+
 ## Requirements
 
 * Nodejs
@@ -115,4 +119,4 @@ Created to host a digital version of my bachelor thesis – which had to be encr
 It was also planned to store the share-link inside NFC tags, but since the library where the thesis would eventually end up used RFID to identify print media, this was not implemented. Though the thought about an NFC tag, which grants access to a digital copy hosted on the decentralized web is still very fancy~.
 
 ---
-Lesosoftware 2022
+aesh - Lesosoftware 2022
