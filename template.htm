@@ -61,7 +61,7 @@ Status: <span id=s>downloading file..</span>
             {
                 s.setAttribute('ready', '');
                 s.innerHTML = 'ready.</br></br>If your browser does not display the document automatically, you can try to launch the download manually using <a href="'
-                            + blobURL + '"${usePreview ? "" : " download=\"" + basename(inputFilename).split("\"").join("") + "\""}>this link</a>.';
+                            + blobURL + '"${usePreview ? "" : " download=\"" + basename(filename).split("\"").join("") + "\""}>this link</a>.';
             }, 1000);
 
             ${usePreview
@@ -69,7 +69,7 @@ Status: <span id=s>downloading file..</span>
               : `
             let a = document.createElement('a');
             a.href = blobURL;
-            a.download = decodeURIComponent('${encodeURIComponent(basename(inputFilename))}');
+            a.download = decodeURIComponent('${encodeURIComponent(basename(filename))}');
             a.click();`}
         }
         catch (err)
