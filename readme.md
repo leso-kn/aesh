@@ -1,3 +1,5 @@
+[![npm version](https://img.shields.io/npm/v/aesh)](https://www.npmjs.com/package/aesh)
+
 # aesh
 
 Encrypt and share files through IPFS via QR codes or NFC tags.
