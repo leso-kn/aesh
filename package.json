@@ -1,6 +1,6 @@
 {
   "name": "aesh",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Encrypt and share files through IPFS via QR codes or NFC tags.",
   "main": "aesh.js",
   "bin": {
