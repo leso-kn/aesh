@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  * aesh - Lesosoftware 2022
  */
