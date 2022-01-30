@@ -31,6 +31,17 @@ const fileExts = [
 
 //
 
+function fullpath(filename)
+{
+    let path = resolve(filename);
+    if (path[0] != '/' && path[1] == ':')
+    {
+        // DOS path
+        path = '/' + path[0].toLowerCase() + path.replace(/\\/g, '/').substring(2);
+    }
+    return path;
+}
+
 function print_usage()
 {
     console.log(`
@@ -126,11 +137,11 @@ async function command_add()
 
         qrcode.generate(shareLink, { small: true }, (qrc) =>
         {
-            console.log(qrc);
+            console.log('\n' + qrc);
             console.log('Share available at: ' + shareLink + '\n');
         });
 
-        execSync(`ipfs files cp -p /ipfs/${hash} "${resolve(filename)}"`);
+        execSync(`ipfs files cp -p /ipfs/${hash} "${fullpath(filename)}"`);
         unlinkSync('.enc.htm');
     }
     else { /* Error */ console.log(ret); }
@@ -141,7 +152,7 @@ async function command_del()
     let filename = process.argv[3];
     if (!filename) { print_usage(); return; }
 
-    execSync(`ipfs files rm -r "${resolve(filename)}"`);
+    execSync(`ipfs files rm -r "${fullpath(filename)}"`);
     console.log(`removed local share (${basename(filename)})`);
 }
 
