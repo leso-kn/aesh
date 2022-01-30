@@ -33,26 +33,54 @@ const fileExts = [
 function print_usage()
 {
     console.log(`
-Usage: aesh add <file.(txt|pdf|mp3|...)>
-            del <local file>`);
+Usage: aesh add [-t <mimetype>] [-n <filename>] <file.(txt|pdf|mp3|...)>
+            del <local file|mfs path>
+
+            -t, --mime=<mimetype> - explicitly set download / preview mime-type.
+
+            -n, --name=<filename> - customize the download filename and local
+                                    mfs (ipfs files) path.`.substring(1));
+}
+
+function cliArg(shortName, longName)
+{
+    // short name
+    let arg = process.argv.indexOf('-' + shortName);
+    if (arg >= 0)
+    { return process.argv.splice(arg, 2)[1]; }
+
+    // long name
+    arg = process.argv.findIndex(v => v.startsWith('--' + longName + '='))
+    if (arg >= 0)
+    { return process.argv.splice(arg, 1)[0].substring(longName.length+3); }
+
+    // not found
+    return null;
 }
 
 async function command_add()
 {
+    let mime = cliArg('t', 'mime');
+    let overrideFilename = cliArg('n', 'name');
+
     let filename = process.argv[3];
     if (!filename) { print_usage(); return; }
 
+    //
     console.log('encryping contents..');
 
     let file = createReadStream(filename);
     let identify = new (require('identify-stream'));
-
     file.pipe(identify);
-    let streamType = await new Promise(r => identify.on('complete', r));
 
-    let mime = streamType
+    if (!mime)
+    {
+        let streamType = await new Promise(r => identify.on('complete', r));
+
+        mime = streamType
             ? streamType.mime
             : (fileExts.filter(ext => filename.match(ext[0]))[0] || [0,'text/plain;charset=utf-8'])[1];
+    }
 
     let usePreview = previewTypes.filter(pt => mime.match(pt)).length > 0; // used in template.htm
     //
@@ -61,6 +89,8 @@ async function command_add()
     let template = readFileSync(join(__dirname, 'template.htm')).toString().split('{{content}}');
 
     let minifyCfg = minify.createConfiguration({ minify_css: true, do_not_minify_doctype: true });
+
+    filename = overrideFilename || filename;
 
     //
     output.write(minify.minify(eval(`\`${template[0]}\``), minifyCfg));
@@ -99,8 +129,7 @@ async function command_add()
             console.log('Share available at: ' + shareLink + '\n');
         });
 
-        execSync(`ipfs files mkdir -p "${dirname(resolve(filename))}" &&
-                  ipfs files cp /ipfs/${hash} "${resolve(filename)}"`.split('\n').join(' '));
+        execSync(`ipfs files cp -p /ipfs/${hash} "${resolve(filename)}"`);
         unlinkSync('.enc.htm');
     }
     else { /* Error */ console.log(ret); }
